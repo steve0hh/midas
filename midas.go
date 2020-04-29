@@ -22,25 +22,25 @@ func biggest(values []int) int {
 }
 
 
-type midas struct {
+type MidasModel struct {
 	curCount *EdgeHash
 	totalCount *EdgeHash
 	curT int
 }
 
-// Creates a new midas struct that will enable the use of
+// Creates a new Midas struct that will enable the use of
 // Fit and FitPredict API.
-func NewMidas(numRows int, numBuckets int, m int) *midas {
-	return &midas{
+func NewMidasModel(numRows int, numBuckets int, m int) *MidasModel {
+	return &MidasModel{
 		totalCount: NewEdgeHash(numRows, numBuckets, m),
 		curCount: NewEdgeHash(numRows, numBuckets, m),
 		curT: 1,
 	}
 }
 
-// Fit the source, destination and time to the midas struct
+// Fit the source, destination and time to the MidasModel struct
 // similar to the sklearn api
-func (m *midas) Fit(src, dst, time int){
+func (m *MidasModel) Fit(src, dst, time int){
 	if time > m.curT {
 		m.curCount.Clear()
 		m.curT = time
@@ -49,9 +49,9 @@ func (m *midas) Fit(src, dst, time int){
 	m.totalCount.Insert(src, dst, 1)
 }
 
-// Fit the source, destination and time to the midas struct and
+// Fit the source, destination and time to the MidasModel struct and
 // calculate the anomaly score
-func (m *midas) FitPredict(src, dst, time int) float64{
+func (m *MidasModel) FitPredict(src, dst, time int) float64{
 	m.Fit(src, dst, time)
 	curMean := m.totalCount.GetCount(src, dst) / float64(m.curT)
 	sqerr := math.Pow(m.curCount.GetCount(src, dst)-curMean, 2)

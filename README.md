@@ -20,11 +20,19 @@ func main () {
 	dst := []int{3,3,4,4,9,9,73,74,75,76}
 	times := []int{1,1,2,2,2,2,2,2,2,2}
 
+
+	// using function to score the edges
 	midasAnormScore := midas.Midas(src, dst, times, 2, 769)
 	midasRAnormScore := midas.MidasR(src, dst, times, 2, 769, 0.6)
 
 	fmt.Println(midasAnormScore)
 	fmt.Println(midasRAnormScore)
+
+	// using sklearn FitPredict api
+	m := midas.NewMidasModel(2, 769, 9460)
+	fmt.Println(m.FitPredict(2,3,1))
+	fmt.Println(m.FitPredict(2,3,1))
+	fmt.Println(m.FitPredict(3,4,2))
 }
 ```
 
