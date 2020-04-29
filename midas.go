@@ -21,12 +21,51 @@ func biggest(values []int) int {
 	return b
 }
 
-func countsToAnom(tot float64, cur float64, curT int) float64 {
-	curMean := tot / cur
-	sqerr := math.Pow(max(0, cur-curMean), 2)
-	return (sqerr/curMean + sqerr/(curMean*max(1.0, float64(curT-1.0))))
+
+type midas struct {
+	curCount *EdgeHash
+	totalCount *EdgeHash
+	curT int
 }
 
+// Creates a new midas struct that will enable the use of
+// Fit and FitPredict API.
+func NewMidas(numRows int, numBuckets int, m int) *midas {
+	return &midas{
+		totalCount: NewEdgeHash(numRows, numBuckets, m),
+		curCount: NewEdgeHash(numRows, numBuckets, m),
+		curT: 1,
+	}
+}
+
+// Fit the source, destination and time to the midas struct
+// similar to the sklearn api
+func (m *midas) Fit(src, dst, time int){
+	if time > m.curT {
+		m.curCount.Clear()
+		m.curT = time
+	}
+	m.curCount.Insert(src, dst, 1)
+	m.totalCount.Insert(src, dst, 1)
+}
+
+// Fit the source, destination and time to the midas struct and
+// calculate the anomaly score
+func (m *midas) FitPredict(src, dst, time int) float64{
+	m.Fit(src, dst, time)
+	curMean := m.totalCount.GetCount(src, dst) / float64(m.curT)
+	sqerr := math.Pow(m.curCount.GetCount(src, dst)-curMean, 2)
+	var curScore float64
+	if m.curT == 1 {
+		curScore = 0
+	} else {
+		curScore = sqerr/curMean + sqerr/(curMean*(float64(m.curT)-1))
+	}
+	return curScore
+}
+
+// Takes in a list of source, destination and times to do anomaly score of each edge
+// This function mirrors the implementation of https://github.com/bhatiasiddharth/MIDAS
 func Midas(src []int, dst []int, times []int, numRows int, numBuckets int) []float64 {
 	m := biggest(src)
 	curCount := NewEdgeHash(numRows, numBuckets, m)
@@ -53,46 +92,6 @@ func Midas(src []int, dst []int, times []int, numRows int, numBuckets int) []flo
 			curScore = sqerr/curMean + sqerr/(curMean*(float64(curT)-1))
 		}
 		anomScore[i] = curScore
-	}
-	return anomScore
-}
-
-func MidasR(src []int, dst []int, times []int, numRows int, numBuckets int, factor float64) []float64 {
-	m := biggest(src)
-	curCount := NewEdgeHash(numRows, numBuckets, m)
-	totalCount := NewEdgeHash(numRows, numBuckets, m)
-
-	srcScore := NewNodeHash(numRows, numBuckets)
-	dstScore := NewNodeHash(numRows, numBuckets)
-	srcTotal := NewNodeHash(numRows, numBuckets)
-	dstTotal := NewNodeHash(numRows, numBuckets)
-
-	anomScore := make([]float64, len(src))
-	var curT, curSrc, curDst int
-	curT = 1
-	var curScore, curScoreSrc, curScoreDst, combinedScore float64
-
-	for i, _ := range src {
-		if i == 0 || times[i] > curT {
-			curCount.Lower(factor)
-			srcScore.Lower(factor)
-			dstScore.Lower(factor)
-			curT = times[i]
-		}
-
-		curSrc = src[i]
-		curDst = dst[i]
-		curCount.Insert(curSrc, curDst, 1)
-		totalCount.Insert(curSrc, curDst, 1)
-		srcScore.Insert(curSrc, 1)
-		dstScore.Insert(curDst, 1)
-		srcTotal.Insert(curSrc, 1)
-		dstTotal.Insert(curDst, 1)
-		curScore = countsToAnom(totalCount.GetCount(curSrc, curDst), curCount.GetCount(curSrc, curDst), curT)
-		curScoreSrc = countsToAnom(srcTotal.GetCount(curSrc), srcScore.GetCount(curSrc), curT)
-		curScoreDst = countsToAnom(dstTotal.GetCount(curDst), dstScore.GetCount(curDst), curT)
-		combinedScore = max(max(curScoreSrc, curScoreDst), curScore)
-		anomScore[i] = math.Log(1 + combinedScore)
 	}
 	return anomScore
 }
