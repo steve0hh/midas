@@ -5,6 +5,8 @@
 
 ## Usage and installation
 
+[Read the docs](https://godoc.org/github.com/steve0hh/midas)
+
 Checkout the `examples` folder for detailed instructions
 
 ```go
