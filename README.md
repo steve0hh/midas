@@ -1,7 +1,8 @@
 # MIDAS
 
-[MIDAS](https://github.com/bhatiasiddharth/MIDAS) - edge stream anomaly detection - for Go
+This is an implementation of [MIDAS](https://github.com/bhatiasiddharth/MIDAS) - edge stream anomaly detection but implemented in Go.
 
+For more information about how it works, please checkout the [resources](#resources) section.
 
 ## Usage and installation
 
@@ -38,7 +39,21 @@ func main () {
 
 ## Resources
 
+- [Orginal implementation of MIDAS in C++](https://github.com/bhatiasiddharth/MIDAS)
 - [MIDAS: Microcluster-Based Detector of Anomalies in Edge Streams](https://www.comp.nus.edu.sg/~sbhatia/assets/pdf/midas.pdf)
+
+
+## Citation
+If you use this code for your research, please consider citing the original paper.
+
+```
+@article{bhatia2019midas,
+  title={MIDAS: Microcluster-Based Detector of Anomalies in Edge Streams},
+  author={Bhatia, Siddharth and Hooi, Bryan and Yoon, Minji and Shin, Kijung and Faloutsos, Christos},
+  journal={arXiv preprint arXiv:1911.04464},
+  year={2019}
+}
+```
 
 ## Contributing
 
