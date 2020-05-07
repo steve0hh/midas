@@ -29,11 +29,17 @@ func main () {
 	fmt.Println(midasAnormScore)
 	fmt.Println(midasRAnormScore)
 
-	// using sklearn FitPredict api
+	// using sklearn FitPredict api for midas
 	m := midas.NewMidasModel(2, 769, 9460)
 	fmt.Println(m.FitPredict(2,3,1))
 	fmt.Println(m.FitPredict(2,3,1))
 	fmt.Println(m.FitPredict(3,4,2))
+
+	// using sklearn FitPredict api for midasR
+	mr := midas.NewMidasRModel(2, 769, 9460, 0.6)
+	fmt.Println(mr.FitPredict(2,3,1))
+	fmt.Println(mr.FitPredict(2,3,1))
+	fmt.Println(mr.FitPredict(3,4,2))
 }
 ```
 
@@ -67,6 +73,6 @@ Everyone is encouraged to help improve this project. Here are a few ways you can
 ## TODOs
 
 - [ ] Godocs documentation
-- [ ] Add sklearn/keras fit & predict API
+- [x] Add sklearn/keras fit & predict API
 - [ ] More examples and tests
 - [ ] Make code more efficient

@@ -10,6 +10,54 @@ func countsToAnom(tot float64, cur float64, curT int) float64 {
 	return (sqerr/curMean + sqerr/(curMean*max(1.0, float64(curT-1.0))))
 }
 
+type MidasRModel struct {
+	curCount   *EdgeHash
+	totalCount *EdgeHash
+	srcScore   *NodeHash
+	dstScore   *NodeHash
+	srcTotal   *NodeHash
+	dstTotal   *NodeHash
+	curT       int
+	factor     float64
+}
+
+func NewMidasRModel(numRows int, numBuckets int, m int, factor float64) *MidasRModel {
+	return &MidasRModel{
+		curCount:   NewEdgeHash(numRows, numBuckets, m),
+		totalCount: NewEdgeHash(numRows, numBuckets, m),
+		srcScore:   NewNodeHash(numRows, numBuckets),
+		dstScore:   NewNodeHash(numRows, numBuckets),
+		srcTotal:   NewNodeHash(numRows, numBuckets),
+		dstTotal:   NewNodeHash(numRows, numBuckets),
+		curT:       1,
+		factor:     factor,
+	}
+}
+
+func (m *MidasRModel) Fit(src, dst, time int) {
+	if time > m.curT {
+		m.curCount.Lower(m.factor)
+		m.srcScore.Lower(m.factor)
+		m.dstScore.Lower(m.factor)
+		m.curT = time
+	}
+	m.curCount.Insert(src, dst, 1)
+	m.totalCount.Insert(src, dst, 1)
+	m.srcScore.Insert(src, 1)
+	m.dstScore.Insert(src, 1)
+	m.srcTotal.Insert(src, 1)
+	m.dstTotal.Insert(dst, 1)
+}
+
+func (m *MidasRModel) FitPredict(src, dst, time int) float64 {
+	m.Fit(src, dst, time)
+	score := countsToAnom(m.totalCount.GetCount(src, dst), m.curCount.GetCount(src, dst), time)
+	scoreSrc := countsToAnom(m.srcTotal.GetCount(src), m.srcScore.GetCount(src), time)
+	scoreDst := countsToAnom(m.dstTotal.GetCount(dst), m.dstScore.GetCount(dst), time)
+	combinedScore := max(max(scoreSrc, scoreDst), score)
+	return math.Log(1 + combinedScore)
+}
+
 func MidasR(src []int, dst []int, times []int, numRows int, numBuckets int, factor float64) []float64 {
 	m := biggest(src)
 	curCount := NewEdgeHash(numRows, numBuckets, m)
